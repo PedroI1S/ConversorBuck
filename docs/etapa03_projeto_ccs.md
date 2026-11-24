@@ -4,6 +4,8 @@ Item 3 do enunciado: projetar o CCS e verificar por simulação cada circuito (a
 
 Arquivo: [etapa03_projeto_ccs.m](../matlab/etapa03_projeto_ccs.m).
 
+> **Adaptação ao catálogo do DAINF (2026-11-23/24):** o circuito montado usa **LM324 em 5 V** (no lugar do MCP6004), Sallen-Key com **1,5 kΩ / 220 nF / 22 nF** (f_PB = 1525 Hz, ζ = 0,316), Ri = 100k + 820 + 82, Rx = 6k8 + 680, Rb = 8k2 + 820 e 100 Ω em série com o PA1. Os valores abaixo são os do projeto original; os do catálogo estão no [roteiro](roteiro_montagem.md) (bloco 4) e simulados no [circuito completo](circuito_completo_simulink.md). A cadeia continua v_ADC = 0,389 + 0,08251·Vo.
+
 **Situação: projeto feito em MATLAB, com valores comerciais.** Faltam a confirmação dos ampops disponíveis e a repetição no Simulink. A simulação no tempo usa o Buck provisório (ζ = 0,65 com R = 47 Ω); trocar o indutor não muda o projeto do CCS, porque f_LC continua 500 Hz.
 
 ## Cadeia e níveis
