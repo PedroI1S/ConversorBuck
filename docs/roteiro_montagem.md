@@ -14,6 +14,9 @@ Os blocos 1 a 4 não precisam de firmware: o PWM vem do gerador de funções. Os
 | 5 | Black Pill: referência, PWM e ADC | Firmware |
 | 6 | Tudo junto | Firmware |
 
+
+Os valores esperados em cada ponto, simulados com o circuito completo (opto, transistores, LM324 e firmware), estão em [circuito_completo_simulink.md](circuito_completo_simulink.md).
+
 ## Regras de segurança
 
 - **Fonte de bancada sempre com limite de corrente.** Use 0,1 A nos blocos 1 e 2 e 0,6 A no bloco 3.

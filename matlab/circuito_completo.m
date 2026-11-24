@@ -3,8 +3,8 @@
 % roteiro de montagem (docs/roteiro_montagem.md), um subsistema por bloco:
 %
 %   1 Fonte E e L7805 | 2 Acionamento (6N137, Q1, Q2) | 3 Potencia (IRF9530,
-%   FCH20A20, L, C, carga) | 4 CCS (divisor, subtrator, Sallen-Key, offset no
-%   LM324) | 5 Black Pill (ADC, firmware, PWM)
+%   FCH20A20, L, C, carga) | 4a Divisor (perto do C de saida) | 4 CCS
+%   (subtrator, Sallen-Key, offset no LM324) | 5 Black Pill (ADC, firmware, PWM)
 %
 % Depois roda dois casos (d fixo = 0,5 e Sinal 1 em malha aberta), mostra os
 % valores esperados em cada ponto de medida do roteiro e salva as figuras.
@@ -15,7 +15,7 @@ aqui = fileparts(mfilename('fullpath'));
 cd(aqui);
 fig = fullfile(aqui, 'figuras');
 if ~exist(fig, 'dir'), mkdir(fig); end
-mdl = 'circuito_completo';
+mdl = 'buck_circuito_completo';
 
 %% 1. Monta o modelo
 monta(mdl, aqui);
@@ -47,14 +47,15 @@ nomes = {'med_bp', 'med_acion', 'med_pot', 'med_ccs'};
 for i = 1:numel(nomes)
     ts = out.(nomes{i});
     r.(nomes{i}).t = ts.Time;
-    r.(nomes{i}).y = reshape(ts.Data, [], size(ts.Data, ndims(ts.Data) == 3)*0 + size(squeeze(ts.Data), 2));
-    if size(squeeze(ts.Data), 1) ~= numel(ts.Time), r.(nomes{i}).y = squeeze(ts.Data).'; else, r.(nomes{i}).y = squeeze(ts.Data); end
+    y = squeeze(ts.Data);
+    if size(y, 1) ~= numel(ts.Time), y = y.'; end
+    r.(nomes{i}).y = y;
 end
 end
 
 function v = media(t, y, t0, t1)
 k = t >= t0 & t < t1;
-v = trapz(t(k), y(k)) / (t(k(find(k, 1, 'last'))) - t(find(k, 1)));
+tk = t(k); v = trapz(tk, y(k)) / (tk(end) - tk(1));
 end
 
 function relatorio_d_fixo(r, Ts)
@@ -64,7 +65,7 @@ bp = r.med_bp; ac = r.med_acion; po = r.med_pot; cc = r.med_ccs;
 fprintf('\n=== d fixo = 0,5, E = 24 V (regime, %g a %g ms) ===\n', t0*1e3, t1*1e3);
 % Niveis durante a chave ligada e desligada: amostra no meio de cada meio periodo
 tl = t1 - Ts + 0.25*Ts; td = t1 - Ts + 0.75*Ts;
-val = @(s, tt) interp1(s.t, s.y(:, :), tt);
+val = @(s, tt) interp1u(s.t, s.y, tt);
 a_l = val(ac, tl); a_d = val(ac, td); p_l = val(po, tl); p_d = val(po, td);
 fprintf('Bloco 2  pino 6 do 6N137: %.2f V (ligada) / %.2f V (desligada)\n', a_l(1), a_d(1));
 fprintf('         coletor de Q2:   %.2f V / %.2f V\n', a_l(2), a_d(2));
@@ -91,6 +92,11 @@ if ~isempty(up) && ~isempty(dn)
 end
 end
 
+function v = interp1u(t, y, tt)
+[tu, iu] = unique(t, 'last');
+v = interp1(tu, y(iu, :), tt);
+end
+
 function dt = tempo_borda(t, v, k, a, b)
 j = max(1, k - 400):min(numel(t), k + 400);
 ta = interp_cruz(t(j), v(j), a); tb = interp_cruz(t(j), v(j), b);
@@ -106,7 +112,7 @@ end
 function relatorio_sinal1(r)
 bp = r.med_bp; po = r.med_pot;
 fprintf('\n=== Sinal 1 em malha aberta, E = 24 V ===\n');
-pat = [2 5 12; 10 15 18; 20 25 12; 30 35 6]*1e-3;   % janelas de patamar [t0 t1 vref]
+pat = [2e-3 5e-3 12; 10e-3 15e-3 18; 20e-3 25e-3 12; 30e-3 35e-3 6];   % janelas de patamar [t0 t1 vref]
 for i = 1:size(pat, 1)
     vo = media(po.t, po.y(:, 3), pat(i, 1), pat(i, 2));
     vr = media(bp.t, bp.y(:, 4), pat(i, 1), pat(i, 2));
@@ -118,7 +124,7 @@ end
 function figura_d_fixo(r, Ts, pasta)
 bp = r.med_bp; ac = r.med_acion; po = r.med_pot; cc = r.med_ccs;
 t1 = 12e-3; z = @(s) s.t > t1 - 2*Ts;
-f = figure('Visible', 'off', 'Position', [0 0 1000 1100]);
+f = figure('Visible', 'off', 'Theme', 'light', 'Position', [0 0 1000 1100]);
 tl = tiledlayout(f, 4, 1, 'TileSpacing', 'compact');
 title(tl, 'Circuito completo, d = 0,5 e E = 24 V: dois períodos em regime');
 ax = nexttile; k = z(bp); plot(ax, (bp.t(k) - bp.t(find(k,1)))*1e6, bp.y(k, 1), 'LineWidth', 1.2); hold(ax, 'on');
@@ -135,7 +141,7 @@ legend(ax, 'divisor', 'subtrator', 'Sallen-Key', 'offset', 'PA1', 'Location', 'e
 exportgraphics(f, fullfile(pasta, 'circuito_completo_d_fixo.png'), 'Resolution', 150);
 close(f);
 
-f = figure('Visible', 'off', 'Position', [0 0 1000 500]);
+f = figure('Visible', 'off', 'Theme', 'light', 'Position', [0 0 1000 500]);
 plot(po.t*1e3, po.y(:, 3), 'LineWidth', 1); hold on;
 stairs(bp.t*1e3, bp.y(:, 4), 'LineWidth', 1);
 xline(1, '--', 'KEY'); grid on; xlabel('t [ms]'); ylabel('V');
@@ -147,7 +153,7 @@ end
 
 function figura_sinal1(r, pasta)
 bp = r.med_bp; po = r.med_pot;
-f = figure('Visible', 'off', 'Position', [0 0 1000 700]);
+f = figure('Visible', 'off', 'Theme', 'light', 'Position', [0 0 1000 700]);
 tl = tiledlayout(f, 2, 1, 'TileSpacing', 'compact');
 title(tl, 'Circuito completo: Sinal 1 em malha aberta, d[k] = v_{ref}[k]/24 V');
 ax = nexttile; plot(ax, po.t*1e3, po.y(:, 3), 'LineWidth', 1); hold(ax, 'on');
@@ -162,9 +168,9 @@ end
 function imagens_do_modelo(mdl, pasta)
 load_system(mdl);
 alvos = {mdl, [mdl '/1 Fonte E e L7805'], [mdl '/2 Acionamento'], [mdl '/2 Acionamento/6N137'], ...
-         [mdl '/3 Potencia'], [mdl '/4 CCS'], [mdl '/5 Black Pill']};
+         [mdl '/3 Potencia'], [mdl '/4a Divisor'], [mdl '/4 CCS'], [mdl '/5 Black Pill']};
 arq = {'modelo_topo', 'modelo_fonte', 'modelo_acionamento', 'modelo_6n137', 'modelo_potencia', ...
-       'modelo_ccs', 'modelo_black_pill'};
+       'modelo_divisor', 'modelo_ccs', 'modelo_black_pill'};
 for i = 1:numel(alvos)
     try
         print(['-s' alvos{i}], '-dpng', '-r150', fullfile(pasta, ['circuito_completo_' arq{i} '.png']));
@@ -180,7 +186,7 @@ end
 %    Diodo: L1 anodo, R1 catodo          Ampop: L1 (+), L2 (-), R1 saida
 %    NPN: L1 base, R1 coletor, R2 emissor  MOSFET P: L1 gate, R1 source, R2 dreno
 %    Opto: L1 anodo, L2 catodo do LED; R2 fotocorrente (para a base), R1 retorno
-%    Fonte DC e sensores: L1 (+), R2 (-); sensores: R1 saida PS
+%    Fonte DC: L1 (+), R1 (-). Fonte controlada e sensores: L1 (+), R2 (-), R1 entrada/saida PS
 %  ======================================================================
 function monta(mdl, pasta)
 load_system('ee_lib'); load_system('fl_lib'); load_system('nesl_utility'); load_system('simulink');
@@ -197,16 +203,17 @@ s1 = subsistema(mdl, '1 Fonte E e L7805', [60 260 200 380], [1 .95 .8]);
 s5 = subsistema(mdl, '5 Black Pill', [60 60 200 200], [.85 .9 1]);
 s2 = subsistema(mdl, '2 Acionamento', [330 120 480 300], [1 .85 .85]);
 s3 = subsistema(mdl, '3 Potencia', [620 180 760 320], [.85 1 .85]);
-s4 = subsistema(mdl, '4 CCS', [620 20 760 140], [.95 .85 1]);
+s4 = subsistema(mdl, '4 CCS', [960 20 1100 140], [.95 .85 1]);
+s6 = subsistema(mdl, '4a Divisor', [820 200 900 280], [1 1 .75]);
 
-monta_fonte(s1); monta_black_pill(s5); monta_acionamento(s2); monta_potencia(s3); monta_ccs(s4);
+monta_fonte(s1); monta_black_pill(s5); monta_acionamento(s2); monta_potencia(s3); monta_ccs(s4); monta_divisor(s6);
 
 % Ligacoes entre os blocos (mesmos nomes do roteiro)
 W(porta(s1, 'E'), porta(s2, 'E')); W(porta(s1, 'E'), porta(s3, 'E'));
 W(porta(s1, '5V'), porta(s2, '5V'));
 W(porta(s5, 'PA8'), porta(s2, 'PA8'));
 W(porta(s2, 'GATE'), porta(s3, 'GATE'));
-W(porta(s3, 'Vo'), porta(s4, 'Vo'));
+W(porta(s3, 'Vo'), porta(s6, 'Vo')); W(porta(s6, 'Vdiv'), porta(s4, 'Vdiv'));
 W(porta(s5, '3V3'), porta(s4, '3V3'));
 W(porta(s4, 'PA1'), porta(s5, 'PA1'));
 
@@ -217,7 +224,7 @@ md = {s5, 'med_bp', 'Osc. Black Pill: PA8, d, vref, Vo lido, codigo';
       s4, 'med_ccs', 'Osc. CCS: divisor, subtrator, SK, offset, PA1'};
 for i = 1:size(md, 1)
     pos = get_param(md{i, 1}, 'Position');
-    x = 880; y = 40 + (i - 1)*110;
+    x = 1220; y = 40 + (i - 1)*110;
     tw = add_block('simulink/Sinks/To Workspace', [mdl '/' md{i, 2}], 'VariableName', md{i, 2}, ...
         'SaveFormat', 'Timeseries', 'Position', [x y x + 70 y + 30]);
     sc = add_block('simulink/Sinks/Scope', [mdl '/' md{i, 3}], 'Position', [x y + 45 x + 40 y + 75]);
@@ -227,15 +234,21 @@ for i = 1:size(md, 1)
     pos(1) = pos(1); %#ok<ASGSL>
 end
 
-add_block('built-in/Note', [mdl '/Leia-me'], 'Position', [60 430], 'Text', sprintf([ ...
+nota(mdl, 60, 430, sprintf([ ...
     'Conversor Buck completo, um bloco por etapa do roteiro de montagem (docs/roteiro_montagem.md).\n' ...
     'Clique duas vezes num bloco para ver os componentes. Os nomes dos componentes sao os do roteiro.\n' ...
     'Parametros e modo do firmware: circuito_completo_parametros.m (MODO = 0 d fixo, 1 malha aberta).\n' ...
     'Terras: simbolo de terra = ponto unico (negativo do C de saida). Terra de sinal e de potencia ficam\n' ...
-    'separados so dentro do 6N137 (LED x saida).']), 'FontSize', '11');
+    'separados so dentro do 6N137 (LED x saida).']));
 
 save_system(mdl, arq);
 fprintf('Modelo salvo em %s\n', arq);
+end
+
+function nota(sys, x, y, txt)
+a = Simulink.Annotation(sys, txt);
+a.Position = [x y x + 600 y + 60];
+a.HorizontalAlignment = 'left';
 end
 
 function s = subsistema(mdl, nome, pos, cor)
@@ -269,7 +282,7 @@ lib = struct( ...
 tam = struct('R', [40 20], 'C', [40 20], 'L', [50 20], 'GND', [20 20], 'DC', [30 30], 'CVS', [30 30], ...
     'VS', [30 30], 'IS', [30 30], 'D', [30 20], 'NPN', [30 40], 'PMOS', [30 40], 'OPTO', [50 50], ...
     'AMP', [40 40], 'PS2S', [25 20], 'S2PS', [25 20], 'SOLV', [30 30], 'CP', [25 15]);
-w = tam.(tipo); if strcmp(ori, 'down'), w = fliplr(w); end
+w = tam.(tipo); if any(strcmp(ori, {'down', 'up'})), w = fliplr(w); end
 h = add_block(lib.(tipo), [sub '/' nome], 'Position', [x - w(1)/2, y - w(2)/2, x + w(1)/2, y + w(2)/2], ...
     'Orientation', ori, varargin{:});
 end
@@ -306,7 +319,10 @@ end
 
 function g = T(sub, x, y, nome)
 % Simbolo de terra
-if nargin < 4, nome = sprintf('terra %d', randi(1e6)); end
+persistent n
+if isempty(n), n = 0; end
+n = n + 1;
+if nargin < 4, nome = sprintf('terra %d', n); else, nome = sprintf('%s %d', nome, n); end
 g = B(sub, 'GND', nome, x, y, 'right');
 end
 
@@ -319,14 +335,10 @@ out = add_block('simulink/Sinks/Out1', [sub '/medidas'], 'Position', [x0 + 130, 
 add_line(sub, [get_param(mx, 'Name') '/1'], 'medidas/1');
 for i = 1:n
     h = sinais{i}{1};
-    if strcmp(get_param(h, 'BlockType'), 'SimscapeBlock') || strcmp(get_param(h, 'BlockType'), 'SubSystem') && ~isempty(get_param(h, 'PortHandles').RConn)
-        c = add_block(sprintf('nesl_utility/PS-Simulink\nConverter'), [sub sprintf('/PS-S %d', i)], ...
+    c = add_block(sprintf('nesl_utility/PS-Simulink\nConverter'), [sub sprintf('/PS-S %d', i)], ...
             'Position', [x0, y0 + 30*(i - 1) + 5, x0 + 25, y0 + 30*(i - 1) + 25], 'Unit', sinais{i}{2});
         add_line(sub, P(h, 'R', 1), P(c, 'L', 1), 'autorouting', 'smart');
         add_line(sub, P(c, 'O', 1), P(mx, 'I', i), 'autorouting', 'smart');
-    else
-        add_line(sub, P(h, 'O', 1), P(mx, 'I', i), 'autorouting', 'smart');
-    end
 end
 med = mx;
 end
@@ -343,7 +355,7 @@ pE = CP(s, 'E', 380, 60, 'Right'); p5 = CP(s, '5V', 380, 100, 'Right');
 g1 = T(s, 100, 200, 'terra de potencia'); g2 = T(s, 240, 200, 'terra de potencia ');
 L(s, P(e, 'L', 1), P(pE, 'R', 1)); L(s, P(e, 'R', 1), P(g1, 'L', 1));
 L(s, P(r5, 'L', 1), P(p5, 'R', 1)); L(s, P(r5, 'R', 1), P(g2, 'L', 1));
-add_block('built-in/Note', [s '/nota'], 'Position', [60 260], 'Text', sprintf( ...
+nota(s, 60, 260, sprintf( ...
     'E: fonte de bancada, 18 a 30 V (24 V nominal).\nL7805: modelado como 5 V ideais; na montagem a entrada vem de E,\ncom 10 uF + 100 nF na entrada e na saida.'));
 end
 
@@ -402,11 +414,11 @@ add_line(s, P(serra, 'O', 1), P(cmp, 'I', 1)); add_line(s, P(ud, 'O', 1), P(cmp,
 add_line(s, P(cmp, 'O', 1), P(dbl, 'I', 1)); add_line(s, P(dbl, 'O', 1), P(g33, 'I', 1));
 
 % Pino PA8: fonte controlada 0 / 3,3 V
-sp = B(s, 'S2PS', 'S-PS PA8', 760, 300, 'right', 'Unit', 'V');
+sp = B(s, 'S2PS', 'S-PS PA8', 760, 300, 'right', 'Unit', 'V', 'FilteringAndDerivatives', 'zero');
 cv = B(s, 'CVS', 'saida PA8', 830, 300, 'right');
 add_line(s, P(g33, 'O', 1), P(sp, 'I', 1));
-L(s, P(sp, 'R', 1), P(cv, 'L', 1));
-L(s, P(cv, 'R', 1), P(p8, 'R', 1)); L(s, P(cv, 'R', 2), P(gnd(830, 360), 'L', 1));
+L(s, P(sp, 'R', 1), P(cv, 'R', 1));      % entrada PS da fonte controlada
+L(s, P(cv, 'L', 1), P(p8, 'R', 1)); L(s, P(cv, 'R', 2), P(gnd(830, 360), 'L', 1));
 
 % 3,3 V da placa (para o offset do CCS)
 v3 = B(s, 'DC', 'regulador 3,3 V da placa', 830, 420, 'down', 'v0', '3.3');
@@ -426,7 +438,7 @@ add_line(s, ph.Outport(2), P(mx, 'I', 3), 'autorouting', 'smart');
 add_line(s, ph.Outport(3), P(mx, 'I', 4), 'autorouting', 'smart');
 add_line(s, P(sq, 'O', 1), P(mx, 'I', 5), 'autorouting', 'smart');
 
-add_block('built-in/Note', [s '/nota'], 'Position', [60 520], 'Text', sprintf([ ...
+nota(s, 60, 520, sprintf([ ...
     'Black Pill: TIM1 a 10 kHz, pulso no inicio do periodo (PWM modo 1). O update do TIM1 dispara o ADC no PA1;\n' ...
     'a interrupcao calcula o proximo d, que vale no periodo seguinte (preload). Firmware: firmware/src/main.c.\n' ...
     'Antes do KEY a chave fica desligada (d = 0). O PA9 (referencia para o filtro RC) nao esta no modelo.']));
@@ -491,7 +503,7 @@ L(s, P(rpd, 'R', 1), P(gnd(90, 320), 'L', 1));
 
 % 6N137 como um CI com os pinos 2, 3, 6 e 5
 op = [s '/6N137'];
-add_block('simulink/Ports & Subsystems/Subsystem', op, 'Position', [220 170 300 270], 'BackgroundColor', '[1 1 1]');
+add_block('simulink/Ports & Subsystems/Subsystem', op, 'Position', [200 150 340 290], 'BackgroundColor', '[1 1 1]');
 delete_line(op, 'In1/1', 'Out1/1'); delete_block([op '/In1']); delete_block([op '/Out1']);
 a2 = CP(op, 'pino 2 anodo', 40, 60, 'Left'); a3 = CP(op, 'pino 3 catodo', 40, 140, 'Left');
 a6 = CP(op, 'pino 6 saida', 400, 40, 'Right'); a5 = CP(op, 'pino 5 GND', 400, 160, 'Right');
@@ -500,7 +512,7 @@ qo = B(op, 'NPN', 'transistor de saida', 280, 100, 'right');
 L(op, P(a2, 'R', 1), P(oc, 'L', 1)); L(op, P(a3, 'R', 1), P(oc, 'L', 2));
 L(op, P(oc, 'R', 2), P(qo, 'L', 1)); L(op, P(oc, 'R', 1), P(qo, 'R', 2));
 L(op, P(qo, 'R', 1), P(a6, 'R', 1)); L(op, P(qo, 'R', 2), P(a5, 'R', 1));
-add_block('built-in/Note', [op '/nota'], 'Position', [40 220], 'Text', sprintf([ ...
+nota(op, 40, 220, sprintf([ ...
     'O 6N137 tem fotodiodo + amplificador + transistor de coletor aberto.\n' ...
     'Aqui: LED com 1,5 V em 10 mA e fotocorrente na base de um transistor (saida coletor aberto).\n' ...
     'Pinos 8 (VCC) e 7 (enable) vao no +5 V; 100 nF entre 8 e 5.']));
@@ -563,29 +575,39 @@ for h = [c1 c2 rr rp]
 end
 L(s, P(ind, 'R', 1), P(pV, 'R', 1));
 slv = B(s, 'SOLV', 'Solver', 100, 280, 'right');
-L(s, P(slv, 'R', 1), P(gnd(100, 340), 'L', 1));
+L(s, P(slv, 'R', 1), P(d, 'L', 1));   % o Solver precisa estar ligado a um no do circuito
 
 % Medidas: no de chaveamento, iL, Vo
 vs = B(s, 'VS', 'V no SW', 300, 380, 'down'); L(s, P(vs, 'L', 1), P(m, 'R', 2)); L(s, P(vs, 'R', 2), P(gnd(300, 440), 'L', 1));
 vo = B(s, 'VS', 'V saida', 760, 380, 'down'); L(s, P(vo, 'L', 1), P(ind, 'R', 1)); L(s, P(vo, 'R', 2), P(gnd(760, 440), 'L', 1));
 medidas(s, {{vs, 'V'}, {is, 'A'}, {vo, 'V'}}, 880, 300);
-add_block('built-in/Note', [s '/nota'], 'Position', [40 480], 'Text', sprintf([ ...
+nota(s, 40, 480, sprintf([ ...
     'IRF9530: canal P no lado alto (source em E). FCH20A20: Schottky, anodo no terra e catodo no no SW.\n' ...
     'O sensor iL fica onde vai o shunt do bloco 3d do roteiro. Terra = negativo do C de saida (ponto unico).']));
 end
 
+% ---- Bloco 4a: divisor de tensao (fica perto do C de saida) ----------------
+function monta_divisor(s)
+pV = CP(s, 'Vo', 40, 100, 'Left'); pD = CP(s, 'Vdiv', 400, 100, 'Right');
+ra = B(s, 'R', 'R1a 10k', 120, 100, 'right', 'R', '10e3');
+rb = B(s, 'R', 'R1b 1k', 220, 100, 'right', 'R', '1e3');
+r2 = B(s, 'R', 'R2 1k', 300, 180, 'down', 'R', '1e3');
+L(s, P(pV, 'R', 1), P(ra, 'L', 1)); L(s, P(ra, 'R', 1), P(rb, 'L', 1));
+L(s, P(rb, 'R', 1), P(r2, 'L', 1)); L(s, P(rb, 'R', 1), P(pD, 'R', 1));
+L(s, P(r2, 'R', 1), P(T(s, 300, 260, 'terra de potencia'), 'L', 1));
+nota(s, 40, 320, sprintf([ ...
+    'Divisor 1/12: R1 = 10k + 1k em serie, R2 = 1k. Vo de 0 a 30 V vira 0 a 2,5 V.\n' ...
+    'Montar perto do C de saida: a ponta de cima de R1 no + do C e o R2 no - do C (terra de potencia).\n' ...
+    'O ponto medio (Vdiv) vai ao Ra 100k do subtrator; o fio do terra de potencia vai ao Ri do subtrator.']));
+end
+
 % ---- Bloco 4: CCS no LM324 -------------------------------------------------
 function monta_ccs(s)
-pV = CP(s, 'Vo', 40, 100, 'Left'); p3 = CP(s, '3V3', 40, 400, 'Left'); pA = CP(s, 'PA1', 1300, 260, 'Right');
+pV = CP(s, 'Vdiv', 200, 100, 'Left'); p3 = CP(s, '3V3', 40, 400, 'Left'); pA = CP(s, 'PA1', 1300, 260, 'Right');
 gnd = @(x, y) T(s, x, y);
 amp = {'A', '1e5', 'Rin', '1e9', 'Rout', '100', 'Vmin', '0.02', 'Vmax', '3.5'};   % LM324 em 5 V
 
-% Divisor: 10k + 1k em cima, 1k embaixo
-ra = B(s, 'R', 'R1a 10k', 110, 100, 'right', 'R', '10e3');
-rb = B(s, 'R', 'R1b 1k', 180, 100, 'right', 'R', '1e3');
-r2 = B(s, 'R', 'R2 1k', 230, 170, 'down', 'R', '1e3');
-L(s, P(pV, 'R', 1), P(ra, 'L', 1)); L(s, P(ra, 'R', 1), P(rb, 'L', 1)); L(s, P(rb, 'R', 1), P(r2, 'L', 1));
-L(s, P(r2, 'R', 1), P(gnd(230, 240), 'L', 1));
+% Entrada: ponto medio do divisor (bloco 4a)
 
 % Subtrator (ampop A, pinos 1-2-3)
 sa = B(s, 'R', 'Ra 100k', 300, 100, 'right', 'R', '100e3');
@@ -595,7 +617,7 @@ si2 = B(s, 'R', 'Ri 820', 360, 300, 'right', 'R', '820');
 si3 = B(s, 'R', 'Ri 82', 420, 300, 'right', 'R', '82');
 sf = B(s, 'R', 'Rf 100k', 500, 230, 'right', 'R', '100e3');
 aa = B(s, 'AMP', 'LM324 A (subtrator)', 500, 120, 'right', amp{:});
-L(s, P(rb, 'R', 1), P(sa, 'L', 1)); L(s, P(sa, 'R', 1), P(aa, 'L', 1)); L(s, P(sa, 'R', 1), P(sb, 'L', 1));
+L(s, P(pV, 'R', 1), P(sa, 'L', 1)); L(s, P(sa, 'R', 1), P(aa, 'L', 1)); L(s, P(sa, 'R', 1), P(sb, 'L', 1));
 L(s, P(sb, 'R', 1), P(gnd(350, 240), 'L', 1));
 L(s, P(gnd(250, 340), 'L', 1), P(si1, 'L', 1));       % "terra de potencia" do divisor
 L(s, P(si1, 'R', 1), P(si2, 'L', 1)); L(s, P(si2, 'R', 1), P(si3, 'L', 1));
@@ -631,7 +653,7 @@ r100 = B(s, 'R', '100 ohm para o PA1', 1220, 260, 'right', 'R', '100');
 L(s, P(ac, 'R', 1), P(r100, 'L', 1)); L(s, P(r100, 'R', 1), P(pA, 'R', 1));
 
 % Medidas: divisor, subtrator, Sallen-Key, offset, PA1
-nos = {P(rb, 'R', 1), P(aa, 'R', 1), P(ab, 'R', 1), P(ac, 'R', 1), P(pA, 'R', 1)};
+nos = {P(pV, 'R', 1), P(aa, 'R', 1), P(ab, 'R', 1), P(ac, 'R', 1), P(pA, 'R', 1)};
 sens = cell(1, 5);
 for i = 1:5
     v = B(s, 'VS', sprintf('V medida %d', i), 200 + 200*i, 640, 'down');
@@ -639,7 +661,7 @@ for i = 1:5
     sens{i} = {v, 'V'};
 end
 medidas(s, sens, 1400, 560);
-add_block('built-in/Note', [s '/nota'], 'Position', [40 760], 'Text', sprintf([ ...
+nota(s, 40, 760, sprintf([ ...
     'CCS com os valores do catalogo (roteiro, bloco 4). LM324 em 5 V: saida limitada a 0,02-3,5 V.\n' ...
     'Medidas na ordem: 1 ponto medio do divisor, 2 pino 1, 3 pino 7, 4 pino 8, 5 PA1.\n' ...
     'Ampop D (pinos 12-14) nao usado: 12 no terra e 13 ligado ao 14.']));
