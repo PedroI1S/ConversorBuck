@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# PlatformIO
+.pio/
+.vscode/
+
+# MATLAB / Simulink (cache e artefatos gerados)
+slprj/
+*.slxc
+*.asv
+*.autosave
+*.mex*
