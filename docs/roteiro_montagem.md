@@ -24,8 +24,57 @@ Os valores esperados em cada ponto, simulados com o circuito completo (opto, tra
 - **Resistor de carga de 46,6 Ω / 10 W:**
   - Com Vo = 18 V ele dissipa 7 W e fica **muito quente**: não encostar e manter longe dos fios.
   - Não deixar Vo acima de ~20 V por mais que alguns segundos.
-- **Osciloscópio:** o terra da ponta é o terra da tomada. Só prender o jacaré da ponta no **terra de potência** (negativo da fonte). Para ver o VGS, medir gate e source em dois canais e usar a função CH1 − CH2.
+- **Osciloscópio:** o terra da ponta é o terra da tomada. O jacaré só vai num **terra** (nunca em E, no source do MOSFET ou no dreno). Para ver o VGS, medir gate e source em dois canais e usar a função CH1 − CH2. Qual terra usar em cada bloco está na tabela abaixo.
 - **Terras:** o terra do Black Pill e o terra de potência se ligam em **um único ponto**: o negativo do capacitor de saída. Até o bloco 6 eles ficam separados; quem liga o PA8 ao acionamento é o 6N137.
+
+## Terras e referências
+
+São **dois terras**, com barramentos separados na protoboard, e **uma única ligação** entre eles no bloco 6:
+
+```
+            TERRA DE SINAL (GND do Black Pill)          TERRA DE POTÊNCIA (negativo da fonte E)
+            ──────────────────────────────────          ───────────────────────────────────────
+ Black Pill: GND, 3,3 V, 5 V (USB)                     Fonte E (−), 470 µF e 1 µF de entrada
+ 6N137: pino 3 (catodo do LED), R_PD 10 kΩ             L7805 (pino 2) e seus 10 µF + 100 nF
+ LM324: pino 11; Rb do subtrator; C2 do Sallen-Key     6N137: pino 5 (+ 100 nF até o pino 8)
+ Ry e Ri do offset; pino 12 (ampop D)                  Q1 e Q2: emissores e R_BE de 10 kΩ
+                                                       FCH20A20: ânodos
+                                                       C de saída (−) e carga (−)
+                                                       Divisor: pé do R2 1 kΩ
+                                                       Subtrator: entrada "terra de potência" (Ri)
+                  │                                                │
+                  └──────── um fio, só no bloco 6 ────────── negativo do C de saída
+                                                              (ponto único)
+```
+
+| Tensão | Gerada por | Medida em relação a | Alimenta |
+|---|---|---|---|
+| E (18–30 V) | fonte de bancada | terra de potência | source do IRF9530, R_GS e zener, entrada do L7805 |
+| 5 V do acionamento | L7805 | terra de potência | 6N137 (pinos 8 e 7), R_P e R_P2 |
+| 5 V do Black Pill | USB | terra de sinal | LM324 (pino 4) |
+| 3,3 V do Black Pill | regulador da placa | terra de sinal | offset do CCS (Rx); também é a referência do ADC |
+| Vo | o Buck | terra de potência | entrada do divisor |
+| PA1 (v_ADC) | saída do CCS | terra de sinal | ADC |
+
+Por que funciona assim:
+
+- **O 6N137 atravessa a fronteira do PA8:** o LED fica no lado de sinal e a saída no lado de potência. Nenhum fio de comando liga um terra ao outro.
+- **O subtrator atravessa a fronteira da medida:** ele recebe o ponto médio do divisor e o terra de potência por dois fios e entrega a diferença em relação ao terra de sinal. Assim a queda de tensão nos fios de potência (corrente de até ~0,4 A com picos no chaveamento) não entra na medida.
+- **O ponto único:** os dois terras precisam estar no mesmo potencial em CC, senão o subtrator sai da faixa. Ligando só no negativo do C de saída, a corrente de potência não passa pelo fio do terra de sinal.
+
+Onde prender o jacaré do osciloscópio:
+
+| Bloco | Jacaré em |
+|---|---|
+| 1, 2 e 3 | terra de potência |
+| 4 e 5 (sem potência) | terra de sinal |
+| 6 | só no ponto único (negativo do C de saída) ou no terra de potência; **nunca** no GND do Black Pill |
+
+Cuidados com a tomada:
+
+- **Nos blocos 2 e 3** o terra do gerador (BNC) e o do osciloscópio são os dois o terra da tomada. Com o gerador no terra de sinal e o jacaré no terra de potência, os dois terras ficam ligados pela tomada. Isso não estraga nada, só não é a separação de verdade: ela vale a partir do bloco 6, com o PA8.
+- **No bloco 6**, prender o jacaré no GND do Black Pill cria uma segunda ligação entre os terras (pela tomada, se o notebook estiver no carregador com terra), e a corrente de potência passa a dividir caminho com o fio de sinal.
+- **Fonte de bancada:** não usar o borne verde de terra (⏚). Só o + e o −.
 - **Eletrolíticos:** confira a polaridade (faixa = negativo) antes de ligar.
 
 ## Pinagens (conferir sempre no datasheet do fabricante da peça)
