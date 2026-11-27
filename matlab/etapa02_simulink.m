@@ -36,10 +36,10 @@ Lval = 17.71e-3;                  % [H] indutor do grupo (medido)
 Cval = 4.7e-6 + 1e-6;             % [F] 4,7 uF + 1 uF
 
 % Parametros de cada versao do circuito
-ideal = struct('nome', 'ideal', 'Rload', 42.9, 'RL', 0, ...
+ideal = struct('nome', 'ideal', 'Rload', 46.6, 'RL', 0, ...
                'Ron', 1e-3, 'Vf', 1e-6, 'Rd', 1e-3);   % Vf > 0 exigido pelo bloco
 real_ = struct('nome', 'com perdas', ...
-               'Rload', 1/(1/46.6 + 7/3900), ...   % 46,6 Ohm || 7 x 3k9 = 43,0 Ohm
+               'Rload', 46.6, ...                  % resistor de potencia (medido)
                'RL', 0.07, ...                      % fio do indutor (medido)
                'Ron', 0.3, ...                      % IRF9530: RDS(on) maximo
                'Vf', 0.55, 'Rd', 0.03);             % FCH20A20 com ~0,4 A (estimado)

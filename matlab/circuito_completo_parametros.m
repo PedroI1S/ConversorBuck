@@ -16,4 +16,3 @@ Ts = 1e-4;                % [s] periodo do PWM e da amostragem (10 kHz)
 L_ind  = 17.71e-3;  r_ind = 0.07;     % indutor medido
 C_out1 = 4.7e-6;    C_out2 = 1e-6;    % capacitores de saida
 R_pot  = 46.6;                         % resistor de potencia medido
-R_par  = 3900/7;                       % 7 x 3k9 em paralelo

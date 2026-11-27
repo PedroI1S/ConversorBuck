@@ -90,13 +90,13 @@ Já existe a reserva nº 40 (criada pelo grupo em 24/11). O carrinho foi montado
 | Resistores | 180 Ω (1), 1k (5), 1k2 (1), 1k5 (3), 2k2 (1), 4k7 (1), 10k (7), 100k (8), 820 (2), 82 (1), 8k2 (1), 6k8 (1), 680 (1), 100 (1), 15k (1), 150k (1), **3k9 (8)** |
 | Capacitores | cerâmico 100 nF (4), 10 µF/63 V (2), 4,7 µF/63 V (2), 470 µF/50 V (1), **1 µF/63 V (2)**, 220 nF/250 V (1), 22 nF/250 V (1), 10 nF/250 V (1), 1 nF/250 V (1) |
 
-Os 8 × 3k9 em paralelo (487,5 Ω) vão em paralelo com o resistor de carga de 47 Ω: 47 ‖ 487,5 = 42,9 Ω → ζ = 0,650. Cada 3k9 dissipa 0,08 W com Vo = 18 V e 0,23 W com 30 V (1/4 W aguenta).
+Os 8 × 3k9 foram pedidos para ficar em paralelo com o resistor de carga e acertar ζ = 0,65. **Decisão de 2026-11-26: não usar**; a carga é só o resistor de potência de 46,6 Ω (ζ = 0,60). Os 3k9 ficam de reserva.
 
 ## Conseguido fora do DAINF (2026-11-24)
 
 | Item | Peça | Observação |
 |---|---|---|
 | Indutor | 17,71 mH, 0,07 Ω | Saturação a conferir no osciloscópio |
-| Carga | resistor de cimento 10 W marcado "R47", **medido: 46,6 Ω** | Com **7 × 3k9 em paralelo** (557 Ω): 46,6 ‖ 557 = 43,0 Ω → ζ = 0,648. O 8º 3k9 do carrinho fica de reserva (com 8: 42,5 Ω, ζ = 0,655) |
+| Carga | resistor de cimento 10 W marcado "R47", **medido: 46,6 Ω** | Usado **sozinho** (decisão de 2026-11-26): ζ = 0,60. Com 7 × 3k9 em paralelo daria 43,0 Ω e ζ = 0,65; a diferença no sobressinal (~10 % contra ~7 %) foi considerada mínima |
 | Diodo de roda livre | FCH20A20 (Schottky duplo, 200 V, 20 A, TO-220, catodo comum) | Serve com folga. Usar um dos ânodos ou os dois em paralelo; conferir a pinagem no datasheet |
 | Optoacoplador | 6N137 (1) | Sem reserva |

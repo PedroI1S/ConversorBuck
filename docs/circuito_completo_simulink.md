@@ -20,7 +20,7 @@ Um subsistema por bloco do roteiro, com os mesmos nomes dos componentes. Clique 
 |---|---|---|
 | 1 Fonte E e L7805 | Fonte de bancada E; L7805 como 5 V ideais | E, 5V |
 | 2 Acionamento | R_LED, R_PD, 6N137 (como um CI com pinos 2, 3, 6 e 5), R_P, R_1, R_BE1, Q1, R_P2, R_B, R_BE2, Q2, R_C, R_GS, zener | PA8, 5V, E → GATE |
-| 3 Potência | IRF9530, FCH20A20, sensor iL (onde vai o shunt), L, C 4,7 µF, C 1 µF, R47, 7 × 3k9 | E, GATE → Vo |
+| 3 Potência | IRF9530, FCH20A20, sensor iL (onde vai o shunt), L, C 4,7 µF, C 1 µF, R47 (46,6 Ω, sem os 3k9 desde 2026-11-26) | E, GATE → Vo |
 | 4a Divisor | R1 = 10k + 1k em série, R2 = 1k. Na placa, fica perto do C de saída | Vo → Vdiv |
 | 4 CCS | Subtrator, Sallen-Key (1k5, 1k5, 220n, 22n), offset (Rx 6k8 + 680, Ry 1k, Rb 8k2 + 820), 100 Ω | Vdiv, 3V3 → PA1 |
 | 5 Black Pill | ADC de 12 bits amostrado no início do período, firmware (MATLAB Function com a mesma conta da `ADC_IRQHandler`), preload do CCR1, TIM1 e o pino PA8 (0/3,3 V) | PA1 → PA8, 3V3 |
@@ -71,17 +71,17 @@ Valores esperados em regime, para comparar na bancada:
 
 | Bloco do roteiro | Ponto | Valor |
 |---|---|---|
-| 3 | i_L média / ripple | 0,282 A / 34 mA pp |
-| 3 | Vo médio / ripple | 12,07 V / 76 mV pp |
+| 3 | i_L média / ripple | 0,260 A / 34 mA pp |
+| 3 | Vo médio / ripple | 12,08 V / 76 mV pp |
 | 3 | Subida / descida no nó de chaveamento | 0,2 µs / 1,0 µs |
-| 4 | Ponto médio do divisor | 1,001 V |
-| 4 | Saída do subtrator (pino 1) e do Sallen-Key (pino 7) | 0,996 V |
+| 4 | Ponto médio do divisor | 1,002 V |
+| 4 | Saída do subtrator (pino 1) e do Sallen-Key (pino 7) | 0,997 V |
 | 4 | Saída do offset (pino 8) = PA1 | 1,383 V |
-| 5 | Código do ADC / Vo reconstruído | 1716 / 12,04 V |
+| 5 | Código do ADC / Vo reconstruído | 1717 / 12,05 V |
 
 Leitura:
 
-- **Vo:** dá 12,07 V, um pouco acima de d·E = 12 V. A queda no MOSFET e no indutor é menor que o ganho do desligamento lento, que alonga o pulso.
+- **Vo:** dá 12,08 V, um pouco acima de d·E = 12 V. A queda no MOSFET e no indutor é menor que o ganho do desligamento lento, que alonga o pulso.
 - **Tempos:** o modelo do MOSFET dá tempos menores que a estimativa de 1,4 µs e 5,7 µs do [acionamento](acionamento_chave.md), porque não inclui toda a carga de gate do componente real. Na bancada devem aparecer tempos maiores.
 - **ADC:** o Vo reconstruído pelo firmware erra 25 mV, uns 2,5 códigos do ADC. É o efeito da calibração a = 0,389 V e b = 0,08251 com os resistores do catálogo; na bancada isso se corrige com os valores medidos.
 
@@ -92,8 +92,8 @@ Leitura:
 | v_ref | Vo médio | Erro | Vo lido pelo ADC |
 |---|---|---|---|
 | 12 V | 12,06 V | +0,06 V | 12,05 V |
-| 18 V | 18,14 V | +0,14 V | 18,09 V |
-| 12 V | 12,07 V | +0,07 V | 12,04 V |
+| 18 V | 18,15 V | +0,15 V | 18,10 V |
+| 12 V | 12,07 V | +0,07 V | 12,05 V |
 | 6 V | 6,00 V | 0,00 V | 6,00 V |
 
 Em malha aberta o erro fica abaixo de 0,15 V. A simulação só com as perdas, na [Etapa 2](etapa02_projeto_buck.md), dava cerca de 0,35 V **abaixo**. Aqui o desligamento mais lento do gate compensa as perdas. Na bancada o resultado deve ficar entre os dois.

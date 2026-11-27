@@ -23,7 +23,7 @@ E  = 24;                        % [V] fonte nominal (18 a 30 V)
 
 L  = 17.71e-3;  rL = 0.07;      % indutor medido
 C  = 4.7e-6 + 1e-6;             % capacitores de saida
-R  = 1/(1/46.6 + 7/3900);       % 46,6 Ohm || 7 x 3k9 = 43,0 Ohm
+R  = 46.6;                      % resistor de potencia (medido), sem os 3k9
 
 % CCS (valores do catalogo, roteiro bloco 4)
 K_ccs  = 0.08251;               % ganho CC da cadeia (divisor x subtrator x offset)

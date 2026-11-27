@@ -51,9 +51,7 @@ Os valores esperados em cada ponto, simulados com o circuito completo (opto, tra
 | Os dois capacitores de 4,7 µF (LCR); usar o mais próximo de 4,7 | 4,7 µF ± 20 % | ____ / ____ |
 | Capacitor de 1 µF da saída | 1 µF | ____ |
 | C de saída total (4,7 + 1 em paralelo) | 5,7 µF | ____ |
-| Resistor de carga | 46,6 Ω | 46,6 Ω |
-| 7 × 3k9 em paralelo (já soldados/montados juntos) | 557 Ω | ____ |
-| Carga total (46,6 Ω ‖ 557 Ω) | 43,0 Ω | ____ |
+| Resistor de carga (só o de potência, sem os 3k9) | 46,6 Ω | 46,6 Ω |
 | Os 8 resistores de 100 kΩ: medir e separar os 4 mais parecidos | 100 kΩ | ____ |
 
 Se o C ou a carga real ficarem longe do esperado, anotar: eu recalculo o ζ.
@@ -156,7 +154,7 @@ Ligações:
 | E (+) | source do IRF9530; 470 µF / 50 V + 1 µF entre E e o terra de potência, **perto do MOSFET e do diodo** |
 | Dreno do IRF9530 (nó de chaveamento) | catodo do FCH20A20 (pino do meio); indutor |
 | Ânodos do FCH20A20 (pinos 1 e 3 juntos) | terra de potência |
-| Outra ponta do indutor (= Vo) | capacitor de 4,7 µF (+) e de 1 µF; carga 46,6 Ω ‖ 7 × 3k9 |
+| Outra ponta do indutor (= Vo) | capacitor de 4,7 µF (+) e de 1 µF; carga de 46,6 Ω |
 | Negativos de C e da carga | terra de potência (este é o **ponto único de terra**) |
 
 Usar fios curtos e grossos no caminho E → MOSFET → indutor → carga → terra → diodo. Lembrar que cada contato da protoboard aguenta ~1 A.
@@ -190,12 +188,12 @@ Fonte com limite de 0,6 A. Medir Vo no multímetro e o ripple de Vo no oscilosc�
 
 ### 3c. Resposta ao degrau (opcional, bom para o artigo)
 
-Gerador em modo burst ou alternando o ciclo entre 25 % e 75 %, com E = 24 V. Ver Vo no osciloscópio: sobe de ~6 para ~18 V com **sobressinal de ~7 %** e acomodação em ~2 ms (ζ = 0,65).
+Gerador em modo burst ou alternando o ciclo entre 25 % e 75 %, com E = 24 V. Ver Vo no osciloscópio: sobe de ~6 para ~18 V com **sobressinal de ~10 %** e acomodação em ~2 ms (ζ = 0,60).
 
 | Verificação | Esperado | Medido |
 |---|---|---|
-| Sobressinal | ~7 % | ____ |
-| Tempo de subida (10–90 %) | ~0,63 ms | ____ |
+| Sobressinal | ~10 % | ____ |
+| Tempo de subida (10–90 %) | ~0,59 ms | ____ |
 
 ### 3d. Saturação do indutor
 
@@ -204,9 +202,9 @@ Separar o terra de potência em dois lados e ligar um resistor shunt de 1 Ω ent
 - **Lado 1:** negativo da fonte, negativo dos capacitores de entrada e ânodos do diodo.
 - **Lado 2:** negativo do C de saída e da carga.
 
-Pelo shunt passa exatamente i_L. Ponta sobre o shunt, com o jacaré no lado 1; o sinal aparece invertido, e 1 V na tela equivale a 1 A. Com E = 24 V e d = 0,75 (0,41 A): a corrente deve ser um triângulo com **rampas retas**. Se a rampa de subida entortar para cima, o núcleo está saturando: anotar a corrente.
+Pelo shunt passa exatamente i_L. Ponta sobre o shunt, com o jacaré no lado 1; o sinal aparece invertido, e 1 V na tela equivale a 1 A. Com E = 24 V e d = 0,75 (0,39 A): a corrente deve ser um triângulo com **rampas retas**. Se a rampa de subida entortar para cima, o núcleo está saturando: anotar a corrente.
 
-Teste de 0,7 A (E = 30 V, d = 1): **só por 2 a 3 segundos**, porque a carga dissipa ~19 W. Tirar o shunt depois.
+Teste de 0,64 A (E = 30 V, d = 1): **só por 2 a 3 segundos**, porque a carga dissipa ~19 W. Tirar o shunt depois.
 
 ---
 

@@ -17,7 +17,7 @@ Enunciado: [Projeto.MD](Projeto.MD) · Slides: `WP2 - Projeto e Análise do conv
 | Condução | Contínua (CCM) | Enunciado, item 2 |
 | Perturbação de modelo | +30 % no amortecimento da planta | Enunciado, item 9 |
 | Pseudocontínuo | ≥ 100 pontos por amostra discreta | Enunciado, item 5 |
-| Carga R | 43,0 Ω: resistor de cimento de 46,6 Ω (10 W) em paralelo com 7 × 3k9 (1/4 W) | ζ = 0,648 e f_LC = 500 Hz |
+| Carga R | 46,6 Ω: só o resistor de cimento de 10 W | ζ = 0,598 e f_LC = 500,9 Hz |
 
 ## Decisões
 
@@ -30,7 +30,7 @@ Enunciado: [Projeto.MD](Projeto.MD) · Slides: `WP2 - Projeto e Análise do conv
 | Sallen-Key | Segue o **slide 7** (decisão do grupo em 2026-11-24): α = 0,7 e ζ_PB = 0,3. Valores do catálogo: R1 = R2 = 1,5 kΩ, C1 = 220 nF, C2 = 22 nF → f_PB = 1525 Hz, ζ = 0,316 (pico de +4,4 dB perto de 1,4 kHz) |
 | Montagem | **Só componentes PTH (sem SMD)**. Sequência de montagem e testes em [docs/roteiro_montagem.md](docs/roteiro_montagem.md) |
 | Artigo | LaTeX com template do grupo; só começa quando o grupo pedir |
-| Amortecimento do filtro LC | **ζ = 0,65**, escolhido pelo grupo em 2026-11-10 para reduzir o sobressinal. O professor orientou partir de ζ = 0,5 e testar; a varredura da Etapa 2 é a justificativa. Com ζ = 0,65 e f_LC = 500 Hz: R = 2417·L e C = 1,013×10⁻⁷/L (L em henry). Com L = 17,71 mH: R = 42,9 Ω e C = 5,7 µF. |
+| Amortecimento do filtro LC | **ζ = 0,65**, escolhido pelo grupo em 2026-11-10 para reduzir o sobressinal. O professor orientou partir de ζ = 0,5 e testar; a varredura da Etapa 2 é a justificativa. Com ζ = 0,65 e f_LC = 500 Hz: R = 2417·L e C = 1,013×10⁻⁷/L (L em henry). Com L = 17,71 mH: R = 42,9 Ω e C = 5,7 µF. **Na montagem (decisão de 2026-11-26) a carga é só o resistor de potência de 46,6 Ω, sem os 3k9 em paralelo: ζ = 0,60.** A diferença (sobressinal de ~10 % em vez de ~7 %) foi considerada mínima. |
 | Acionamento da chave | Optoacoplador **6N137** + 2× BC547 + MOSFET canal P **IRF9530** com zener de 15 V (escolha do grupo em 2026-11-23). Não inverte o PWM, chave desligada durante o boot, permite d = 1. Ver [docs/acionamento_chave.md](docs/acionamento_chave.md) |
 | Saturação com E = 18 V | **Esperada** (decisão do grupo em 2026-11-24): no patamar de 18 V da referência com a fonte em 18 V, d satura em 1 e Vo fica um pouco abaixo de 18 V |
 | PWM | Pulso **alinhado no início do período** (CA08), no firmware e em todas as simulações |
@@ -59,7 +59,7 @@ Enunciado: [Projeto.MD](Projeto.MD) · Slides: `WP2 - Projeto e Análise do conv
 Roteiro de montagem e testes: [docs/roteiro_montagem.md](docs/roteiro_montagem.md). Lista de compras/checagem: [docs/lista_componentes.md](docs/lista_componentes.md) (2026-11-23). Conferência no catálogo do DAINF: [docs/disponibilidade_dainf.md](docs/disponibilidade_dainf.md). Fora do catálogo: já conseguidos o indutor (17,71 mH), o diodo FCH20A20, o 6N137 e o resistor de carga de 10 W (46,6 Ω medido).
 
 
-1. ~~Indutor~~: resolvido em 2026-11-24. **L = 17,71 mH, C = 5,7 µF (4,7 µF + 1 µF) e R = 43,0 Ω (46,6 Ω ‖ 7 × 3k9)**, ζ = 0,648 e f_LC = 500,9 Hz. Resistência do fio: 0,07 Ω (efeito desprezível no ζ). Falta confirmar no osciloscópio que o indutor não satura até 0,7 A.
+1. ~~Indutor~~: resolvido em 2026-11-24. **L = 17,71 mH, C = 5,7 µF (4,7 µF + 1 µF) e R = 46,6 Ω (só o resistor de potência, desde 2026-11-26)**, ζ = 0,598 e f_LC = 500,9 Hz. Resistência do fio: 0,07 Ω (efeito desprezível no ζ). Falta confirmar no osciloscópio que o indutor não satura até 0,7 A.
 2. ~~Demais componentes~~: resolvido em 2026-11-24. Todos retirados (LM324, IRF9530, FCH20A20, 6N137, BC547). Ver [docs/disponibilidade_dainf.md](docs/disponibilidade_dainf.md).
 3. ~~Materiais de discretização e modelagem~~: resolvido em 2026-11-17. São o CA07 a CA10 em `Slides de aula/` (ver "Convenções do professor").
 4. ~~Fonte em 18 V~~: resolvido em 2026-11-24. A saturação de d em 1 nesse trecho é esperada.
@@ -99,4 +99,5 @@ Seguir isto nas Etapas 5 a 9 para o script ficar no formato que o professor espe
 - **2026-11-24** — Firmware de bancada da Black Pill em firmware/ (CMSIS, PlatformIO): PWM 10 kHz no PA8, ADC no PA1 disparado pelo TIM1, referência do Sinal 1 no PA9, modos d fixo e malha aberta, KEY liga/desliga, proteção Vo > 25 V e leitura na serial (PA2). Compila sem avisos; ainda não testado na placa. Roteiro, blocos 5 e 6, atualizado.
 - **2026-11-24** — Circuito completo no Simulink/Simscape (matlab/circuito_completo.m → buck_circuito_completo.slx): fonte, acionamento com 6N137/BC547/IRF9530, potência, CCS no LM324 e Black Pill com a conta do firmware. Valores esperados por ponto de medida em docs/circuito_completo_simulink.md. d = 0,5: Vo = 12,07 V, ADC reconstrói 12,04 V; Sinal 1 em malha aberta com erro ≤ 0,14 V.
 - **2026-11-24** — Decisões do grupo: a saturação de d com E = 18 V é esperada e o Sallen-Key segue o slide 7. README atualizado (LM324, Sallen-Key do catálogo, pendências resolvidas). Etapa 4 iniciada.
-- **2026-11-24** — Etapa 4 em MATLAB (etapa04_malha_aberta.m): Buck com subida de 0,63 ms, acomodação de 1,9 ms e sobressinal de 6,9 %; banda de 542 Hz; 106 dB de atenuação do chaveamento até o ADC (< 0,12 código); Sinal 1 em malha aberta com 0,76 V RMS de erro, quase todo atraso de ~0,4 ms nas rampas.
+- **2026-11-24** — Etapa 4 em MATLAB (etapa04_malha_aberta.m): Buck com subida de 0,63 ms, acomodação de 1,9 ms e sobressinal de 6,9 %; banda de 542 Hz (valores com 43 Ω; refeitos em 2026-11-26); 106 dB de atenuação do chaveamento até o ADC (< 0,12 código); Sinal 1 em malha aberta com 0,76 V RMS de erro, quase todo atraso de ~0,4 ms nas rampas.
+- **2026-11-26** — Grupo decidiu usar só o resistor de potência (46,6 Ω), sem os 7 × 3k9 em paralelo: ζ = 0,598 (sobressinal de 9,6 % em vez de 6,9 %). Etapas 2 e 4 e circuito completo refeitos: ripple de corrente no pior caso 21 % (23 % com perdas), CCM mantida; Buck com banda de 576 Hz e Sinal 1 em malha aberta com 0,74 V RMS de erro.

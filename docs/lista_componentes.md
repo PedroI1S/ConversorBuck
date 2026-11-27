@@ -9,7 +9,7 @@ Todos PTH, para protoboard. Gerada em 2026-11-23 a partir das Etapas 2 e 3 (ζ_L
 | Indutor | 17,71 mH, corrente ≥ 0,7 A (pico de 0,44 A em operação; 0,70 A com d = 1 e E = 30 V) | 1 | Já tem. Falta medir a resistência do fio |
 | Capacitor de saída | **4,7 µF + 1 µF em paralelo = 5,7 µF**, ≥ 63 V | 1 de cada | DAINF. Medir no LCR e ficar com o 4,7 µF mais próximo do nominal |
 | Resistor de carga, parte maior | **39 Ω**, fio ou cimento, **≥ 10 W (20 W se houver)** | 1 | 6,9 W com Vo = 18 V; ~19 W se d travar em 1 com 30 V (testar por pouco tempo) |
-| Resistor de carga, parte menor | **3,9 Ω, ≥ 2 W** | 1 | Total 42,9 Ω → ζ = 0,650. Alternativa: um único 43 Ω ≥ 10 W |
+| Resistor de carga, parte menor | **3,9 Ω, ≥ 2 W** | 1 | Total 42,9 Ω → ζ = 0,650. Alternativa: um único 43 Ω ≥ 10 W. **Montado (2026-11-26): só um resistor de 46,6 Ω / 10 W, ζ = 0,60** |
 | Diodo de roda livre | **SB560** ou **MBR1060** (Schottky 60 V). Alternativa: UF5408 (ultrarrápido 3 A) | 1 | **Não** usar 1N4007/1N5408: são lentos demais para 10 kHz |
 | Capacitor de entrada (barramento) | eletrolítico 470 µF, ≥ 50 V | 1 | Perto do MOSFET e do diodo |
 | Capacitor de entrada (alta frequência) | filme 1 µF, ≥ 63 V | 1 | Em paralelo com o de 470 µF |

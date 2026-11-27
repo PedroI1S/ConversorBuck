@@ -34,10 +34,10 @@ wLC = 2*pi*fLC;             % [rad/s]
 zetas = [0.5 0.6 0.65 0.7]; % amortecimentos testados (0,65 = escolha do grupo)
 nz    = numel(zetas);
 
-% Valores comerciais adotados (zeta = 0,65)
+% Valores montados: so o resistor de potencia (zeta = 0,60)
 Lc = Lind;                  % [H]
 Cc = 4.7e-6 + 1e-6;         % [F] 4,7 uF + 1 uF em paralelo (catalogo do DAINF)
-Rc = 39 + 3.9;              % [Ohm] 39 Ohm + 3,9 Ohm em serie (carga de potencia)
+Rc = 46.6;                  % [Ohm] resistor de potencia de 10 W "R47" (medido)
 
 %% 2) Projeto de R e C para cada zeta, com L fixo
 L = Lind*ones(1, nz);

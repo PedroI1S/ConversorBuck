@@ -4,7 +4,7 @@ Item 2 do enunciado: projetar o conversor e verificar por simulação a banda pa
 
 Arquivo: [etapa02_projeto_buck.m](../matlab/etapa02_projeto_buck.m).
 
-**Situação (2026-11-24): projeto feito com o indutor real do grupo, L = 17,71 mH.** Valores finais: **R = 42,9 Ω (39 Ω + 3,9 Ω), C = 5,7 µF (4,7 µF + 1 µF), ζ = 0,650, f_LC = 500,9 Hz.** Falta medir a resistência do fio do indutor e repetir no Simulink.
+**Situação (2026-11-26): projeto feito com o indutor real do grupo, L = 17,71 mH.** O projeto pedia R = 42,8 Ω para ζ = 0,65. Na montagem o grupo decidiu usar **só o resistor de potência de 46,6 Ω**, sem os 3k9 em paralelo que acertariam os 43 Ω. Valores finais: **R = 46,6 Ω, C = 5,7 µF (4,7 µF + 1 µF), ζ = 0,598, f_LC = 500,9 Hz.** A diferença é pequena: fica praticamente na linha ζ = 0,6 da tabela abaixo (sobressinal de 9,5 % em vez de 6,8 %).
 
 ## Método
 
@@ -17,7 +17,7 @@ G(s) = ω² / (s² + 2ζω·s + ω²)      ω = 1/√(LC)      ζ = (1/2R)·√(
 1. A frequência de corte fica no meio geométrico entre a fundamental e o chaveamento: f_LC = √(f₁·fₛ) = √(25 · 10000) = 500 Hz.
 2. Com o indutor fixo (L = 17,71 mH), C sai só de f_LC e R sai do ζ: C = 1/(Lω²) = 5,72 µF e R = Lω/(2ζ).
 
-Orientação do professor (2026-11-10): partir de ζ = 0,5 e testar qual valor descreve melhor o amortecimento. O script varre ζ = 0,5 / 0,6 / 0,65 / 0,7; o grupo escolheu **ζ = 0,65**.
+Orientação do professor (2026-11-10): partir de ζ = 0,5 e testar qual valor descreve melhor o amortecimento. O script varre ζ = 0,5 / 0,6 / 0,65 / 0,7; o grupo escolheu **ζ = 0,65** no projeto e montou com **ζ = 0,60** (só o resistor de 46,6 Ω, decisão de 2026-11-26).
 
 ## Comparação dos amortecimentos (L = 17,71 mH, f_LC = 500 Hz)
 
@@ -58,38 +58,37 @@ Seguimento do Sinal 1 em malha aberta, com a referência usada direto como açã
 - A escolha final do amortecimento só fecha em malha fechada (Etapas 8 e 9), porque o controlador muda o atraso e o sobressinal. O item 9 do enunciado também pede o teste com +30 % de amortecimento, ou seja, ζ ≈ 0,85.
 - No circuito real o amortecimento será maior que o calculado, porque a resistência do fio do indutor e a do MOSFET entram em série. Medir a resistência do fio do indutor: cada 1 Ω em série soma cerca de (1/2)·√(C/L) ≈ 0,009 ao ζ.
 
-## Verificação com o conversor chaveado (L = 17,71 mH, C = 5,7 µF, R = 42,9 Ω)
+## Verificação com o conversor chaveado (L = 17,71 mH, C = 5,7 µF, R = 46,6 Ω)
 
-Valores comerciais dão f_LC = 500,9 Hz e ζ = 0,650. Simulação com chave e diodo ideais, 100 pontos por período de chaveamento. Entre parênteses, o valor teórico: Δi_L = E·d·(1−d)/(L·fₛ) e Δv_o/V_o = (1−d)/(8·L·C·fₛ²).
+Os valores montados dão f_LC = 500,9 Hz e ζ = 0,598. Simulação com chave e diodo ideais, 100 pontos por período de chaveamento. Entre parênteses, o valor teórico: Δi_L = E·d·(1−d)/(L·fₛ) e Δv_o/V_o = (1−d)/(8·L·C·fₛ²).
 
 ![Ripple](../matlab/figuras/etapa02_ripple.png)
 
 | E [V] | d | V_o [V] | I_L [A] | I_L mínima [A] | Ripple de corrente | Ripple de tensão |
 |---|---|---|---|---|---|---|
-| 24 | 0,50 | 12,0 | 0,280 | 0,263 | 12,1 % (12,1) | 0,62 % (0,62) |
-| 24 | 0,25 | 6,0 | 0,140 | 0,127 | 18,2 % (18,2) | 0,93 % (0,93) |
-| 24 | 0,75 | 18,0 | 0,420 | 0,407 | 6,1 % (6,1) | 0,31 % (0,31) |
-| 30 | 0,20 | 6,0 | 0,140 | 0,126 | 19,4 % (19,4) | 0,99 % (0,99) |
-| 30 | 0,60 | 18,0 | 0,420 | 0,399 | 9,7 % (9,7) | 0,50 % (0,50) |
-| 18 | 0,50 | 9,0 | 0,210 | 0,197 | 12,1 % (12,1) | 0,62 % (0,62) |
+| 24 | 0,50 | 12,0 | 0,258 | 0,241 | 13,2 % (13,2) | 0,62 % (0,62) |
+| 24 | 0,25 | 6,0 | 0,129 | 0,116 | 19,8 % (19,7) | 0,93 % (0,93) |
+| 24 | 0,75 | 18,0 | 0,386 | 0,374 | 6,6 % (6,6) | 0,31 % (0,31) |
+| 30 | 0,20 | 6,0 | 0,129 | 0,115 | 21,1 % (21,1) | 0,99 % (0,99) |
+| 30 | 0,60 | 18,0 | 0,386 | 0,366 | 10,5 % (10,5) | 0,50 % (0,50) |
+| 18 | 0,50 | 9,0 | 0,193 | 0,180 | 13,2 % (13,2) | 0,62 % (0,62) |
 
 | Critério | Resultado |
 |---|---|
 | Banda passante | f_LC = 501 Hz, acima das harmônicas do sinal (até 325 Hz) e −52 dB em fₛ |
 | Condução contínua | Atendido: corrente mínima sempre positiva |
-| Ripple de corrente < 50 % | Atendido: pior caso 19,4 % |
+| Ripple de corrente < 50 % | Atendido: pior caso 21,1 % |
 | Ripple de tensão < 2 % | Atendido: pior caso 0,99 % |
 
 Correntes e potências para escolher as peças:
 
 | Grandeza | Valor |
 |---|---|
-| Pico no indutor em operação (18 V) | 0,44 A |
-| Pico com d = 1 e E = 30 V (saturação) | 0,70 A → o indutor precisa aguentar ≥ 0,7 A |
-| Potência no 39 Ω | 6,9 W com 18 V; 19 W com 30 V e d = 1 |
-| Potência no 3,9 Ω | 0,7 W com 18 V; 1,9 W com 30 V e d = 1 |
+| Pico no indutor em operação (18 V) | 0,40 A |
+| Pico com d = 1 e E = 30 V (saturação) | 0,64 A → o indutor precisa aguentar ≥ 0,65 A |
+| Potência no resistor de 46,6 Ω (10 W) | 7,0 W com 18 V; 19 W com 30 V e d = 1 (só por poucos segundos) |
 
-Esses ripples não dependem de R enquanto f_LC e ζ forem mantidos, então trocar a carga (e reescalar L e C) não muda a tabela.
+O ripple de tensão não depende de R. O de corrente cresce com R (a corrente média cai): passar de 43 Ω para 46,6 Ω aumentou o pior caso de 19,4 % para 21,1 %, ainda bem abaixo de 50 %.
 
 ## Verificação no Simulink/Simscape
 
@@ -103,25 +102,25 @@ Duas versões do circuito:
 
 | Versão | R | r_L | Chave (R_on) | Diodo |
 |---|---|---|---|---|
-| Ideal (validação) | 42,9 Ω | 0 | 1 mΩ | ideal |
-| Com perdas (peças reais) | 43,0 Ω (46,6 Ω ‖ 7 × 3k9) | 0,07 Ω (medido) | 0,3 Ω (IRF9530, máximo) | V_f = 0,55 V, 0,03 Ω (FCH20A20, estimado) |
+| Ideal (validação) | 46,6 Ω | 0 | 1 mΩ | ideal |
+| Com perdas (peças reais) | 46,6 Ω | 0,07 Ω (medido) | 0,3 Ω (IRF9530, máximo) | V_f = 0,55 V, 0,03 Ω (FCH20A20, estimado) |
 
 ### Regime
 
 | E [V] | d | V_o ideal | V_o com perdas | Ripple de corrente (ideal / perdas) | Ripple de tensão (ideal / perdas) |
 |---|---|---|---|---|---|
-| 24 | 0,50 | 12,00 V | 11,66 V | 12,1 % / 12,8 % | 0,62 % / 0,65 % |
-| 24 | 0,25 | 6,00 V | 5,57 V | 18,2 % / 20,1 % | 0,93 % / 1,02 % |
-| 24 | 0,75 | 18,00 V | 17,74 V | 6,1 % / 6,3 % | 0,31 % / 0,32 % |
-| 30 | 0,20 | 6,00 V | 5,54 V | 19,4 % / 21,4 % | 0,99 % / 1,09 % |
-| 30 | 0,60 | 18,00 V | 17,67 V | 9,7 % / 10,1 % | 0,50 % / 0,51 % |
-| 18 | 0,50 | 9,00 V | 8,68 V | 12,1 % / 13,0 % | 0,62 % / 0,66 % |
+| 24 | 0,50 | 12,00 V | 11,67 V | 13,2 % / 13,8 % | 0,62 % / 0,65 % |
+| 24 | 0,25 | 6,00 V | 5,57 V | 19,8 % / 21,8 % | 0,93 % / 1,02 % |
+| 24 | 0,75 | 18,00 V | 17,75 V | 6,6 % / 6,8 % | 0,31 % / 0,32 % |
+| 30 | 0,20 | 6,00 V | 5,54 V | 21,1 % / 23,2 % | 0,99 % / 1,09 % |
+| 30 | 0,60 | 18,00 V | 17,68 V | 10,5 % / 10,9 % | 0,50 % / 0,51 % |
+| 18 | 0,50 | 9,00 V | 8,68 V | 13,2 % / 14,0 % | 0,62 % / 0,66 % |
 
 ![Regime no Simscape](../matlab/figuras/etapa02b_regime_simscape.png)
 
 - **Validação:** a versão ideal reproduz a tabela do MATLAB. V_o difere no máximo 1 mV, e os ripples são iguais.
 - **Critérios:** as duas versões atendem CCM, ripple de corrente < 50 % e ripple de tensão < 2 %.
-- **Efeito das perdas:** a saída cai de 0,26 a 0,46 V. A queda é maior com d pequeno, porque o diodo conduz mais tempo e o V_f pesa mais. Em malha aberta esse erro aparece direto; em malha fechada o integrador corrige, pedindo um d um pouco maior.
+- **Efeito das perdas:** a saída cai de 0,25 a 0,46 V. A queda é maior com d pequeno, porque o diodo conduz mais tempo e o V_f pesa mais. Em malha aberta esse erro aparece direto; em malha fechada o integrador corrige, pedindo um d um pouco maior.
 
 ### Sinal 1 em malha aberta (E = 24 V, d[k] = v_ref[k]/E)
 
@@ -129,8 +128,8 @@ Duas versões do circuito:
 
 | Versão | Erro RMS | Erro máximo | V_o máx / mín | Diferença RMS para o modelo médio |
 |---|---|---|---|---|
-| Ideal | 0,84 V | 3,13 V | 18,27 / 5,71 V | 0,02 V |
-| Com perdas | 0,91 V | 3,41 V | 18,02 / 5,27 V | 0,35 V |
+| Ideal | 0,82 V | 3,04 V | 18,38 / 5,60 V | 0,02 V |
+| Com perdas | 0,89 V | 3,31 V | 18,13 / 5,16 V | 0,35 V |
 
 - O conversor chaveado ideal segue o modelo médio da Etapa 2 com 0,02 V RMS de diferença, depois de filtrar o ripple. O modelo médio basta para as Etapas 4 a 9.
 - **Perdas:** somam ~0,35 V de erro de regime em malha aberta.
@@ -142,9 +141,9 @@ Com o distúrbio de −6 V a fonte cai para 18 V, e o patamar de 18 V da referê
 
 ## Falta nesta etapa
 
-- Resistência do fio medida em 2026-11-24: **0,07 Ω**. Soma só 0,0006 ao ζ (0,650 → 0,651) e cai 0,03 V a 0,42 A: desprezível.
-- Conferir que o indutor não satura até 0,7 A (teste com resistor shunt, abaixo) e medir o C real no LCR.
+- Resistência do fio medida em 2026-11-24: **0,07 Ω**. Soma só 0,0006 ao ζ (0,598 → 0,599) e cai 0,03 V a 0,39 A: desprezível.
+- Conferir que o indutor não satura até 0,65 A (teste com resistor shunt, abaixo) e medir o C real no LCR.
 
 ### Teste de saturação do indutor
 
-Resistor shunt de 1 Ω / 1 W no retorno de terra: entre o negativo comum de C e R e o ponto onde se juntam o ânodo do diodo e o negativo da fonte. Ali passa exatamente i_L. Ponta do osciloscópio no shunt, com o terra da ponta no negativo da fonte (o sinal aparece invertido, 1 V = 1 A). Subir até E = 30 V com d = 1 (0,7 A) e olhar a forma de onda: rampas retas = sem saturação; rampa que entorta para cima no fim do período = núcleo saturando. Tirar o shunt depois do teste.
+Resistor shunt de 1 Ω / 1 W no retorno de terra: entre o negativo comum de C e R e o ponto onde se juntam o ânodo do diodo e o negativo da fonte. Ali passa exatamente i_L. Ponta do osciloscópio no shunt, com o terra da ponta no negativo da fonte (o sinal aparece invertido, 1 V = 1 A). Subir até E = 30 V com d = 1 (0,64 A) e olhar a forma de onda: rampas retas = sem saturação; rampa que entorta para cima no fim do período = núcleo saturando. Tirar o shunt depois do teste.

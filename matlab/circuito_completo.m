@@ -569,8 +569,7 @@ L(s, P(is, 'R', 2), P(ind, 'L', 1));
 c1 = B(s, 'C', 'C 4,7 uF', 520, 200, 'down', 'c', 'C_out1');
 c2 = B(s, 'C', 'C 1 uF', 580, 200, 'down', 'c', 'C_out2');
 rr = B(s, 'R', 'R47 46,6 ohm', 640, 200, 'down', 'R', 'R_pot');
-rp = B(s, 'R', '7 x 3k9 em paralelo', 700, 200, 'down', 'R', 'R_par');
-for h = [c1 c2 rr rp]
+for h = [c1 c2 rr]
     L(s, P(ind, 'R', 1), P(h, 'L', 1)); L(s, P(h, 'R', 1), P(gnd(get_param(h, 'Position')*[.5;0;.5;0], 280), 'L', 1));
 end
 L(s, P(ind, 'R', 1), P(pV, 'R', 1));
